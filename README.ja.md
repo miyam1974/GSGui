@@ -7,7 +7,7 @@ PDF / PostScript / 画像をドロップし、プリセットと少数の詳細�
 
 Ghostscript 本体は同梱しません。システムに入っている `gswin64c.exe` を呼び出します。
 
-![GSGui メイン画面](docs/images/main.png)
+![GSGui メイン画面](docs/images/main.ja.png)
 
 ## ダウンロード（実行ファイル）
 

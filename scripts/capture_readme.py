@@ -1,4 +1,4 @@
-"""Capture the main GSGui window for README (Windows)."""
+"""Capture GSGui main windows for README (Windows): English + Japanese."""
 
 from __future__ import annotations
 
@@ -10,8 +10,11 @@ from PIL import Image
 
 import gsgui.settings as settings_mod
 from gsgui.app import App
+from gsgui.i18n import Lang
 
-OUT = Path(__file__).resolve().parents[1] / "docs" / "images" / "main.png"
+IMAGES = Path(__file__).resolve().parents[1] / "docs" / "images"
+OUT_EN = IMAGES / "main.png"
+OUT_JA = IMAGES / "main.ja.png"
 
 # Neutral sample path — no real username / home directory
 SAMPLE_OUTPUT_DIR = r"C:\Output"
@@ -74,16 +77,26 @@ def capture_hwnd(hwnd: int) -> Image.Image:
     return Image.frombuffer("RGB", (width, height), bytes(buf), "raw", "BGRX", 0, 1)
 
 
-def sanitize_for_readme(app: App) -> None:
-    """Strip personal paths and force English UI for the public screenshot."""
-    from gsgui.i18n import Lang
-
-    # Do not overwrite the user's real settings.json while capturing
+def _disable_persist(app: App) -> None:
     settings_mod.save_settings = lambda _s: True  # type: ignore[assignment]
     app._schedule_persist = lambda: None  # type: ignore[method-assign]
     app._persist_settings = lambda: None  # type: ignore[method-assign]
 
-    app._set_language(Lang.EN, persist=False)
+
+def sanitize_for_readme(app: App, lang: Lang) -> None:
+    """Strip personal paths and force UI language for the public screenshot."""
+    from gsgui.labels import out_value_to_label
+    from gsgui.models import OutputLocation
+
+    _disable_persist(app)
+    app._set_language(lang, persist=False)
+
+    same = out_value_to_label(lang)[OutputLocation.SAME_AS_SOURCE.value]
+    app.out_label_var.set(same)
+    app.out_seg.set(same)
+    from gsgui.segment_style import paint_segment
+
+    paint_segment(app.out_seg)
 
     app.output_dir_entry.configure(state="normal")
     app.output_dir_entry.delete(0, "end")
@@ -91,10 +104,15 @@ def sanitize_for_readme(app: App) -> None:
     app._update_output_path_enabled()
 
 
-def main() -> None:
+def _window_hwnd(app: App) -> int:
+    hwnd = user32.GetParent(int(app.winfo_id()))
+    return hwnd if hwnd else int(app.winfo_id())
+
+
+def capture_once(lang: Lang, out: Path) -> None:
     app = App()
     app.geometry("1140x680")
-    sanitize_for_readme(app)
+    sanitize_for_readme(app, lang)
 
     def shoot_and_quit() -> None:
         try:
@@ -103,21 +121,23 @@ def main() -> None:
             app.lift()
             app.focus_force()
             app.update()
-            hwnd = user32.GetParent(int(app.winfo_id()))
-            if not hwnd:
-                hwnd = int(app.winfo_id())
-            img = capture_hwnd(hwnd)
+            img = capture_hwnd(_window_hwnd(app))
             extrema = img.convert("L").getextrema()
             if extrema[1] < 10:
                 raise RuntimeError(f"capture looks black (extrema={extrema})")
-            OUT.parent.mkdir(parents=True, exist_ok=True)
-            img.save(OUT, format="PNG", optimize=True)
-            print(f"saved {OUT} ({img.size[0]}x{img.size[1]})")
+            out.parent.mkdir(parents=True, exist_ok=True)
+            img.save(out, format="PNG", optimize=True)
+            print(f"saved {out} ({img.size[0]}x{img.size[1]}) lang={lang.value}")
         finally:
             app.destroy()
 
     app.after(2000, shoot_and_quit)
     app.mainloop()
+
+
+def main() -> None:
+    capture_once(Lang.EN, OUT_EN)
+    capture_once(Lang.JA, OUT_JA)
 
 
 if __name__ == "__main__":
