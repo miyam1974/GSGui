@@ -75,11 +75,15 @@ def capture_hwnd(hwnd: int) -> Image.Image:
 
 
 def sanitize_for_readme(app: App) -> None:
-    """Strip personal paths from the visible UI before capturing."""
+    """Strip personal paths and force English UI for the public screenshot."""
+    from gsgui.i18n import Lang
+
     # Do not overwrite the user's real settings.json while capturing
     settings_mod.save_settings = lambda _s: True  # type: ignore[assignment]
     app._schedule_persist = lambda: None  # type: ignore[method-assign]
     app._persist_settings = lambda: None  # type: ignore[method-assign]
+
+    app._set_language(Lang.EN, persist=False)
 
     app.output_dir_entry.configure(state="normal")
     app.output_dir_entry.delete(0, "end")

@@ -8,11 +8,12 @@ from typing import Any
 
 import customtkinter as ctk
 
+from gsgui.i18n import Lang, t
 from gsgui.labels import (
-    COLOR_LABEL_TO_VALUE,
     DPI_PRESETS,
-    ORIENT_LABEL_TO_VALUE,
-    PAPER_LABEL_TO_VALUE,
+    color_label_to_value,
+    orient_label_to_value,
+    paper_label_to_value,
 )
 from gsgui.models import Compatibility
 from gsgui.presets import PresetAdvancedDefaults
@@ -53,12 +54,13 @@ def reset_entry_placeholder(entry: ctk.CTkEntry) -> None:
 
 
 class AdvancedDialog:
-    """Modal 詳細設定. Mutates the shared StringVars / IntVar owned by App."""
+    """Modal advanced settings. Mutates the shared StringVars / IntVar owned by App."""
 
     def __init__(
         self,
         parent: ctk.CTk,
         *,
+        get_lang: Callable[[], Lang],
         compat_var: ctk.StringVar,
         color_label_var: ctk.StringVar,
         dpi_var: ctk.StringVar,
@@ -69,6 +71,7 @@ class AdvancedDialog:
         on_changed: Callable[[], None],
     ) -> None:
         self._parent = parent
+        self._get_lang = get_lang
         self.compat_var = compat_var
         self.color_label_var = color_label_var
         self.dpi_var = dpi_var
@@ -98,13 +101,14 @@ class AdvancedDialog:
         if self._open:
             return
         self._open = True
+        lang = self._get_lang()
 
         self._dim = ctk.CTkFrame(self._parent, fg_color=MODAL_DIM_COLOR, corner_radius=0)
         self._dim.place(relx=0, rely=0, relwidth=1, relheight=1)
         self._dim.lift()
 
         win = ctk.CTkToplevel(self._parent)
-        win.title("詳細設定")
+        win.title(t(lang, "dialog_advanced_title"))
         win.geometry(centered_geometry(self._parent))
         win.resizable(False, False)
         win.transient(self._parent)
@@ -115,9 +119,12 @@ class AdvancedDialog:
         body = ctk.CTkFrame(win, fg_color=COLOR["panel"], corner_radius=12)
         body.pack(fill="both", expand=True, padx=14, pady=14)
         body.grid_columnconfigure(1, weight=1)
-        ctk.CTkLabel(body, text="詳細設定", font=font(16, "bold"), text_color=COLOR["text"]).grid(
-            row=0, column=0, columnspan=2, sticky="w", padx=12, pady=(12, 8)
-        )
+        ctk.CTkLabel(
+            body,
+            text=t(lang, "dialog_advanced_title"),
+            font=font(16, "bold"),
+            text_color=COLOR["text"],
+        ).grid(row=0, column=0, columnspan=2, sticky="w", padx=12, pady=(12, 8))
 
         def row(r: int, label: str, widget) -> None:  # noqa: ANN001
             ctk.CTkLabel(
@@ -134,15 +141,14 @@ class AdvancedDialog:
         compat_seg.set(self.compat_var.get())
         paint_segment(compat_seg)
         self._compat_seg = compat_seg
-        row(1, "PDF 互換", compat_seg)
+        row(1, t(lang, "adv_compat"), compat_seg)
 
-        color_seg = make_segment(
-            body, list(COLOR_LABEL_TO_VALUE.keys()), self._on_color
-        )
+        color_map = color_label_to_value(lang)
+        color_seg = make_segment(body, list(color_map.keys()), self._on_color)
         color_seg.set(self.color_label_var.get())
         paint_segment(color_seg)
         self._color_seg = color_seg
-        row(2, "色", color_seg)
+        row(2, t(lang, "adv_color"), color_seg)
 
         dpi_row = ctk.CTkFrame(body, fg_color="transparent")
         dpi_presets = list(DPI_PRESETS)
@@ -157,7 +163,11 @@ class AdvancedDialog:
             custom_dpi = current_dpi
         self._dpi_seg.pack(side="left", fill="x", expand=True)
         ctk.CTkLabel(
-            dpi_row, text="その他", text_color=COLOR["muted"], font=font(11), width=36
+            dpi_row,
+            text=t(lang, "adv_dpi_other"),
+            text_color=COLOR["muted"],
+            font=font(11),
+            width=36,
         ).pack(side="left", padx=(10, 2))
         self._dpi_entry = ctk.CTkEntry(
             dpi_row,
@@ -165,14 +175,14 @@ class AdvancedDialog:
             font=font(12),
             fg_color=COLOR["panel_alt"],
             border_color=COLOR["drop_border"],
-            placeholder_text="例: 96",
+            placeholder_text=t(lang, "adv_dpi_placeholder"),
             placeholder_text_color=COLOR["muted"],
         )
         if custom_dpi:
             self._dpi_entry.insert(0, custom_dpi)
         self._dpi_entry.pack(side="left")
         self._dpi_entry.bind("<KeyRelease>", lambda _e: self._on_dpi_typed())
-        row(3, "解像度 dpi", dpi_row)
+        row(3, t(lang, "adv_dpi"), dpi_row)
 
         jpeg_row = ctk.CTkFrame(body, fg_color="transparent")
         ctk.CTkSlider(
@@ -189,11 +199,11 @@ class AdvancedDialog:
             jpeg_row, text=str(int(self.jpeg_var.get())), width=36, font=font(12)
         )
         self._jpeg_label.pack(side="left", padx=4)
-        row(4, "JPEG 品質", jpeg_row)
+        row(4, t(lang, "adv_jpeg"), jpeg_row)
 
         self._page_entry = ctk.CTkEntry(
             body,
-            placeholder_text="例: 1-3,5（空欄で全ページ）",
+            placeholder_text=t(lang, "adv_pages_placeholder"),
             placeholder_text_color=COLOR["muted"],
             fg_color=COLOR["panel_alt"],
             font=font(12),
@@ -204,27 +214,25 @@ class AdvancedDialog:
             "<KeyRelease>",
             lambda _e: self.page_range_var.set(self._page_entry.get().strip()) if self._page_entry else None,
         )
-        row(5, "ページ範囲", self._page_entry)
+        row(5, t(lang, "adv_pages"), self._page_entry)
 
-        paper_seg = make_segment(
-            body, list(PAPER_LABEL_TO_VALUE.keys()), self._on_paper
-        )
+        paper_map = paper_label_to_value(lang)
+        paper_seg = make_segment(body, list(paper_map.keys()), self._on_paper)
         paper_seg.set(self.paper_label_var.get())
         paint_segment(paper_seg)
         self._paper_seg = paper_seg
-        row(6, "画像の用紙", paper_seg)
+        row(6, t(lang, "adv_paper"), paper_seg)
 
-        orient_seg = make_segment(
-            body, list(ORIENT_LABEL_TO_VALUE.keys()), self._on_orient
-        )
+        orient_map = orient_label_to_value(lang)
+        orient_seg = make_segment(body, list(orient_map.keys()), self._on_orient)
         orient_seg.set(self.orient_label_var.get())
         paint_segment(orient_seg)
         self._orient_seg = orient_seg
-        row(7, "向き", orient_seg)
+        row(7, t(lang, "adv_orient"), orient_seg)
 
         ctk.CTkLabel(
             body,
-            text="ページ範囲は PDF / PS のみ。用紙・向きは画像変換時に有効。",
+            text=t(lang, "adv_help"),
             wraplength=ADVANCED_HELP_WRAP,
             justify="left",
             font=font(11),
@@ -233,7 +241,7 @@ class AdvancedDialog:
 
         ctk.CTkButton(
             body,
-            text="OK",
+            text=t(lang, "adv_ok"),
             font=font(13, "bold"),
             fg_color=COLOR["cta"],
             hover_color=COLOR["cta_hover"],

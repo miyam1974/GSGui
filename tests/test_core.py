@@ -381,7 +381,7 @@ def test_worker_cancel_before_and_during(tmp_path: Path, monkeypatch) -> None:  
     worker.cancel()
     worker._run()
     assert all(i.status == JobStatus.CANCELLED for i in items)
-    assert all(i.message == "中断されました" for i in items)
+    assert all(i.message == "Cancelled" for i in items)
 
     # First succeeds, then cancel so the second item is skipped
     first = QueueItem(path=a, kind=FileKind.PDF, size_bytes=4)
@@ -430,5 +430,5 @@ def test_worker_invalid_page_range(tmp_path: Path) -> None:
     )
     worker._run()
     assert item.status == JobStatus.FAILED
-    assert "ページ範囲" in item.message
+    assert "page range" in item.message.lower()
     assert logs

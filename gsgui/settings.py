@@ -42,6 +42,8 @@ class AppSettings:
     window_geometry: str = ""
     # Scale preset remembered while GS既定 is checked
     last_scale_preset: str = PdfSettings.EBOOK.value
+    # UI language: "en" (default) or "ja"
+    ui_language: str = "en"
 
     @classmethod
     def from_options(
@@ -50,6 +52,7 @@ class AppSettings:
         ghostscript_path: str = "",
         window_geometry: str = "",
         last_scale_preset: str = PdfSettings.EBOOK.value,
+        ui_language: str = "en",
     ) -> AppSettings:
         return cls(
             ghostscript_path=ghostscript_path,
@@ -67,6 +70,7 @@ class AppSettings:
             overwrite_policy=options.overwrite_policy.value,
             window_geometry=window_geometry,
             last_scale_preset=last_scale_preset,
+            ui_language=ui_language,
         )
 
 

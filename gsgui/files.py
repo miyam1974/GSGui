@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
+from gsgui.i18n import Lang, t
 from gsgui.ghostscript import find_ghostscript, probe_pdf_page_count
 from gsgui.models import (
     SUPPORTED_EXTENSIONS,
@@ -51,7 +53,7 @@ def collect_files(paths: list[Path]) -> list[Path]:
     return found
 
 
-def build_queue_item(path: Path) -> QueueItem:
+def build_queue_item(path: Path, lang: Lang = Lang.EN) -> QueueItem:
     """Build a queue row quickly. PDF page counts are filled later via enrich_pdf_meta."""
     path = normalize_path(path)
     kind = classify_path(path)
@@ -68,13 +70,13 @@ def build_queue_item(path: Path) -> QueueItem:
             with Image.open(path) as img:
                 meta = f"{img.width}×{img.height}"
         except (OSError, UnidentifiedImageError, ValueError):
-            meta = "画像"
+            meta = t(lang, "meta_image")
     elif kind == FileKind.PDF:
-        meta = "PDF"
+        meta = t(lang, "meta_pdf")
     elif kind == FileKind.POSTSCRIPT:
-        meta = "PostScript"
+        meta = t(lang, "meta_ps")
     else:
-        meta = "不明"
+        meta = t(lang, "meta_unknown")
 
     return QueueItem(
         path=path,
@@ -84,7 +86,7 @@ def build_queue_item(path: Path) -> QueueItem:
     )
 
 
-def enrich_pdf_meta(item: QueueItem, gs_path: Path | None = None) -> str | None:
+def enrich_pdf_meta(item: QueueItem, gs_path: Path | None = None, lang: Lang = Lang.EN) -> str | None:
     """Probe page count for a PDF item. Returns new meta text, or None if unchanged."""
     if item.kind != FileKind.PDF:
         return None
@@ -94,7 +96,27 @@ def enrich_pdf_meta(item: QueueItem, gs_path: Path | None = None) -> str | None:
     pages = probe_pdf_page_count(executable, item.path)
     if not pages:
         return None
-    return f"{pages} ページ"
+    return t(lang, "meta_pages", n=pages)
+
+
+def relocalize_item_meta(item: QueueItem, lang: Lang) -> None:
+    """Refresh queue meta text after a UI language change."""
+    if item.kind == FileKind.IMAGE:
+        if "×" not in item.meta:
+            item.meta = t(lang, "meta_image")
+        return
+    if item.kind == FileKind.PDF:
+        m = re.match(r"^(\d+)\s", item.meta.strip())
+        if m:
+            item.meta = t(lang, "meta_pages", n=int(m.group(1)))
+        else:
+            item.meta = t(lang, "meta_pdf")
+        return
+    if item.kind == FileKind.POSTSCRIPT:
+        item.meta = t(lang, "meta_ps")
+        return
+    if item.kind == FileKind.UNKNOWN:
+        item.meta = t(lang, "meta_unknown")
 
 
 def display_name(path: Path) -> str:

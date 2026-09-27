@@ -8,6 +8,7 @@ from typing import Any
 import customtkinter as ctk
 
 from gsgui.files import display_name
+from gsgui.i18n import Lang, t
 from gsgui.models import JobStatus, QueueItem, format_size
 from gsgui.textutil import nfc
 from gsgui.theme import (
@@ -18,7 +19,6 @@ from gsgui.theme import (
     QUEUE_COL_REDUCTION,
     QUEUE_COL_SIZE,
     QUEUE_COL_STATUS,
-    QUEUE_COLUMNS,
     QUEUE_DETAIL_WRAP_EXTRA,
     QUEUE_FIXED_COLS_WIDTH,
     QUEUE_NAME_MIN_WRAP,
@@ -29,12 +29,12 @@ from gsgui.theme import (
     icon_font,
 )
 
-STATUS_LABELS = {
-    JobStatus.PENDING: "待機",
-    JobStatus.RUNNING: "実行中",
-    JobStatus.SUCCESS: "成功",
-    JobStatus.FAILED: "失敗",
-    JobStatus.CANCELLED: "中断",
+_STATUS_KEYS = {
+    JobStatus.PENDING: "status_pending",
+    JobStatus.RUNNING: "status_running",
+    JobStatus.SUCCESS: "status_success",
+    JobStatus.FAILED: "status_failed",
+    JobStatus.CANCELLED: "status_cancelled",
 }
 
 STATUS_COLORS = {
@@ -46,6 +46,22 @@ STATUS_COLORS = {
 }
 
 RowWidgets = dict[str, Any]
+
+
+def status_label(lang: Lang, status: JobStatus) -> str:
+    return t(lang, _STATUS_KEYS[status])
+
+
+def queue_columns(lang: Lang) -> tuple[tuple[str, int], ...]:
+    return (
+        (t(lang, "col_status"), QUEUE_COL_STATUS),
+        (t(lang, "col_file"), 0),
+        (t(lang, "col_info"), QUEUE_COL_META),
+        (t(lang, "col_src"), QUEUE_COL_SIZE),
+        (t(lang, "col_out"), QUEUE_COL_SIZE),
+        (t(lang, "col_reduce"), QUEUE_COL_REDUCTION),
+        (t(lang, "col_open"), QUEUE_COL_OPEN),
+    )
 
 
 def queue_name_wraplength(scroll_width: int) -> int:
@@ -83,11 +99,11 @@ def reduction_label(item: QueueItem) -> tuple[str, object]:
     return f"{red:.0f}%", color
 
 
-def build_queue_header(parent: ctk.CTkScrollableFrame) -> ctk.CTkFrame:
+def build_queue_header(parent: ctk.CTkScrollableFrame, lang: Lang) -> ctk.CTkFrame:
     header = ctk.CTkFrame(parent, fg_color="transparent")
     header.grid(row=0, column=0, sticky="ew", pady=(0, 2))
     header.grid_columnconfigure(1, weight=1)
-    for col, (text, w) in enumerate(QUEUE_COLUMNS):
+    for col, (text, w) in enumerate(queue_columns(lang)):
         ctk.CTkLabel(
             header,
             text=text,
@@ -99,10 +115,10 @@ def build_queue_header(parent: ctk.CTkScrollableFrame) -> ctk.CTkFrame:
     return header
 
 
-def build_queue_empty_label(parent: ctk.CTkScrollableFrame) -> ctk.CTkLabel:
+def build_queue_empty_label(parent: ctk.CTkScrollableFrame, lang: Lang) -> ctk.CTkLabel:
     label = ctk.CTkLabel(
         parent,
-        text="まだファイルがありません",
+        text=t(lang, "queue_empty"),
         text_color=COLOR["muted"],
         font=font(12),
     )
@@ -113,6 +129,7 @@ def build_queue_empty_label(parent: ctk.CTkScrollableFrame) -> ctk.CTkLabel:
 def build_queue_row(
     parent: ctk.CTkScrollableFrame,
     *,
+    lang: Lang,
     index: int,
     item: QueueItem,
     selected: bool,
@@ -134,7 +151,7 @@ def build_queue_row(
 
     status = ctk.CTkLabel(
         frame,
-        text=STATUS_LABELS[item.status],
+        text=status_label(lang, item.status),
         width=QUEUE_COL_STATUS,
         anchor="nw",
         font=font(11, "bold"),
@@ -246,15 +263,15 @@ def build_queue_row(
         "pdf_btn": pdf_btn,
         "detail": detail,
     }
-    apply_queue_row_data(widgets, item)
+    apply_queue_row_data(widgets, item, lang)
     return widgets
 
 
-def apply_queue_row_data(widgets: RowWidgets, item: QueueItem) -> None:
+def apply_queue_row_data(widgets: RowWidgets, item: QueueItem, lang: Lang) -> None:
     """Update an existing row's labels/buttons without destroying the frame."""
     widgets["item"] = item
     widgets["status"].configure(
-        text=STATUS_LABELS[item.status],
+        text=status_label(lang, item.status),
         text_color=STATUS_COLORS[item.status],
     )
     widgets["meta"].configure(text=item.meta)
@@ -286,17 +303,17 @@ def paint_queue_row_selection(widgets: RowWidgets, *, selected: bool) -> None:
 
 
 __all__ = [
-    "QUEUE_COLUMNS",
     "STATUS_COLORS",
-    "STATUS_LABELS",
     "apply_queue_row_data",
     "build_queue_empty_label",
     "build_queue_header",
     "build_queue_row",
     "has_openable_output",
     "paint_queue_row_selection",
+    "queue_columns",
     "queue_detail_wraplength",
     "queue_name_wraplength",
     "reduction_label",
     "show_row_detail",
+    "status_label",
 ]

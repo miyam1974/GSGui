@@ -87,16 +87,6 @@ QUEUE_OPEN_BTN_WIDTH = 28
 QUEUE_OPEN_BTN_HEIGHT = 24
 QUEUE_DETAIL_WRAP_EXTRA = 200
 
-QUEUE_COLUMNS: tuple[tuple[str, int], ...] = (
-    ("状態", QUEUE_COL_STATUS),
-    ("ファイル", 0),
-    ("情報", QUEUE_COL_META),
-    ("元", QUEUE_COL_SIZE),
-    ("出力", QUEUE_COL_SIZE),
-    ("削減", QUEUE_COL_REDUCTION),
-    ("開く", QUEUE_COL_OPEN),
-)
-
 _FONT_CANDIDATES = (
     "Yu Gothic UI",
     "Meiryo UI",

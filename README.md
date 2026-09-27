@@ -1,56 +1,59 @@
 # GSGui
 
-Ghostscript を使った **Windows 向け PDF 変換 GUI** です。  
-PDF / PostScript / 画像をドロップし、プリセットと少数の詳細設定で PDF を再出力・変換します。
+**[English](README.md)** | **[日本語](README.ja.md)**
 
-Ghostscript 本体は同梱しません。システムに入っている `gswin64c.exe` を呼び出します。
+A **Windows PDF conversion GUI** powered by Ghostscript.  
+Drop PDFs, PostScript, or images, then re-export or convert them with presets and a small set of advanced options.
 
-![GSGui メイン画面](docs/images/main.png)
+Ghostscript itself is **not** bundled. GSGui calls the system `gswin64c.exe`.
 
-## ダウンロード（実行ファイル）
+![GSGui main window](docs/images/main.png)
 
-[Releases](https://github.com/miyam1974/GSGui/releases) から最新の **`GSGui-windows-x64.exe`** をダウンロードして実行してください。
+## Download (executable)
 
-- Python のインストールは不要です
-- **Ghostscript は別途インストールが必要**です（下表参照）
-- Windows が「不明な発行元」と表示する場合があります（未署名のため）
+Get the latest **`GSGui-windows-x64.exe`** from [Releases](https://github.com/miyam1974/GSGui/releases).
 
-`v*` タグを push すると、GitHub Actions がビルドして Release に exe を添付します。
+- No Python install required
+- **Ghostscript must be installed separately** (see below)
+- Windows may warn about an unknown publisher (the exe is unsigned)
 
-## 主な機能
+Pushing a `v*` tag runs GitHub Actions, which builds the exe and attaches it to the Release.
 
-- 入力キュー（ドラッグ＆ドロップ / 追加 / 削除 / クリア）。フォルダドロップ可
-- 対応形式: PDF、PS、EPS、JPEG、PNG、TIFF
-- 出力先（元と同じフォルダ、または指定フォルダ）。ファイル名は `元の名前_gs.pdf`
-- 同名時の扱い: 上書き / 連番
-- 変換: PDF 再出力、PS/EPS → PDF、画像 → PDF（ファイルごと / まとめて1つ）
-- 画質プリセット: 画面 / 電子書籍（初期値） / プリンタ / 印刷入稿 / GS既定
-- 詳細設定: PDF 互換、色、解像度、JPEG 品質、ページ範囲、画像の用紙・向き
-- 一括変換、進行状況、中断、結果表示とログ、実行コマンドのプレビュー
-- Ghostscript の自動検出。見つからない場合は右上の **「Ghostscriptパス設定」** で指定
-- ウィンドウ位置や変換設定の保存（`%USERPROFILE%\.gsgui\settings.json`）
+## Features
 
-## 必要環境
+- Input queue (drag & drop / add / remove / clear). Folder drop supported
+- Formats: PDF, PS, EPS, JPEG, PNG, TIFF
+- Output location (same folder as source, or a chosen folder). Names: `original_gs.pdf`
+- On name conflict: overwrite / numbered
+- Modes: PDF rewrite, PS/EPS → PDF, images → PDF (per file / merge)
+- Quality presets: Screen / Ebook (default) / Printer / Prepress / GS default
+- Advanced: PDF compatibility, color, resolution, JPEG quality, page range, image paper & orientation
+- Batch convert, progress, cancel, results, log, and command preview
+- Auto-detect Ghostscript, or set it with **Ghostscript path** in the header
+- UI language: **EN** (default) / **日本語** (toggle in the header)
+- Remembers window position and settings (`%USERPROFILE%\.gsgui\settings.json`)
 
-| 項目 | 内容 |
-|------|------|
+## Requirements
+
+| Item | Detail |
+|------|--------|
 | OS | Windows 10 / 11 |
-| Ghostscript | [公式サイト](https://www.ghostscript.com/) から別途インストール（64-bit の `gswin64c.exe`） |
-| ソースから動かす場合 | Python 3.11 以降（開発・動作確認は 3.13）と `requirements.txt` の依存 |
+| Ghostscript | Install separately from the [official site](https://www.ghostscript.com/) (64-bit `gswin64c.exe`) |
+| From source | Python 3.11+ (developed on 3.13) and `requirements.txt` |
 
-### Ghostscript が見つからないとき
+### If Ghostscript is not found
 
-1. Ghostscript をインストールする  
-2. それでも検出されない場合は、アプリ右上の **「Ghostscriptパス設定」** から `gswin64c.exe` を選ぶ
+1. Install Ghostscript  
+2. If it still is not detected, use **Ghostscript path** at the top right and select `gswin64c.exe`
 
-## 使い方
+## Usage
 
-1. PDF / PS / EPS / JPEG / PNG / TIFF をウィンドウへドロップする（または「追加…」）
-2. 右側でプリセット・出力先・同名時の扱いを選ぶ（必要なら「詳細設定…」）
-3. 「変換」を押す
-4. キュー行末の 📁 / 📄 から出力フォルダや PDF を開く
+1. Drop PDF / PS / EPS / JPEG / PNG / TIFF onto the window (or use **Add…**)
+2. Choose preset, output location, and conflict policy on the right (open **Advanced…** if needed)
+3. Click **Convert**
+4. Use 📁 / 📄 on a queue row to open the output folder or PDF
 
-## ソースから起動
+## Run from source
 
 ```powershell
 git clone https://github.com/miyam1974/GSGui.git
@@ -61,9 +64,9 @@ pip install -r requirements.txt
 python -m gsgui
 ```
 
-初回以降は `run.bat` でも起動できます（venv がなければ自動作成します）。
+After the first setup you can also use `run.bat` (creates a venv if missing).
 
-## 開発
+## Development
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
@@ -71,31 +74,31 @@ pip install -r requirements.txt pytest
 python -m pytest tests -q
 ```
 
-### ローカルで exe をビルド
+### Build the exe locally
 
 ```powershell
 pip install -r requirements.txt -r requirements-build.txt
 .\scripts\build_exe.ps1
 ```
 
-成果物: `dist\GSGui-windows-x64.exe`
+Output: `dist\GSGui-windows-x64.exe`
 
-### Release を切る（メンテナ）
+### Cut a release (maintainers)
 
 ```powershell
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-Actions の **Release** ワークフローが Windows 上でビルドし、GitHub Release に exe を添付します。
+The **Release** workflow builds on Windows and attaches the exe to the GitHub Release.
 
-## スコープ外
+## Out of scope
 
-サムネイル、PDF/A、ページ編集・注釈・OCR、パスワード解除、シェル連携、変換履歴など。  
-Ghostscript の対話的なフロントエンドに寄せたツールです。
+Thumbnails, PDF/A, page editing / annotations / OCR, password removal, shell integration, conversion history, and similar features.  
+GSGui is intentionally a focused Ghostscript front end.
 
-## ライセンス
+## License
 
-本リポジトリのソースコードは [MIT License](LICENSE) です。
+Source code in this repository is under the [MIT License](LICENSE).
 
-実行に必要な [Ghostscript](https://www.ghostscript.com/) は本プロジェクトの一部ではなく、Artifex のライセンス（AGPL など）が別途適用されます。利用・再配布時は Ghostscript 側の条件も確認してください。
+[Ghostscript](https://www.ghostscript.com/) is not part of this project and is subject to Artifex licensing (e.g. AGPL). Check Ghostscript’s terms when you use or redistribute it.

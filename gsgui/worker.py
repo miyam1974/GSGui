@@ -14,6 +14,7 @@ from gsgui.ghostscript import (
     run_ghostscript,
     validate_page_range,
 )
+from gsgui.i18n import Lang, t
 from gsgui.models import (
     ConversionOptions,
     FileKind,
@@ -35,6 +36,7 @@ class ConversionWorker:
         on_item_update: ItemCallback,
         on_log: ProgressCallback,
         on_done: Callable[[], None],
+        lang: Lang = Lang.EN,
     ) -> None:
         self.gs_path = gs_path
         self.items = items
@@ -42,6 +44,7 @@ class ConversionWorker:
         self.on_item_update = on_item_update
         self.on_log = on_log
         self.on_done = on_done
+        self.lang = lang
         self._cancel = threading.Event()
         self._thread: threading.Thread | None = None
 
@@ -55,10 +58,10 @@ class ConversionWorker:
     def _run(self) -> None:
         try:
             if not validate_page_range(self.options.page_range):
-                self.on_log("ページ範囲の形式が不正です（例: 1-3,5）")
+                self.on_log(t(self.lang, "worker_bad_pages_log"))
                 for item in self.items:
                     item.status = JobStatus.FAILED
-                    item.message = "ページ範囲が不正です"
+                    item.message = t(self.lang, "worker_bad_pages")
                     self.on_item_update(item)
                 return
 
@@ -84,12 +87,12 @@ class ConversionWorker:
         if item.status in (JobStatus.SUCCESS, JobStatus.FAILED):
             return
         item.status = JobStatus.CANCELLED
-        item.message = "中断されました"
+        item.message = t(self.lang, "worker_cancelled")
         self.on_item_update(item)
 
     def _convert_single(self, item: QueueItem) -> None:
         item.status = JobStatus.RUNNING
-        item.message = "変換中…"
+        item.message = t(self.lang, "worker_converting")
         self.on_item_update(item)
 
         output = resolve_output_path(item.path, self.options)
@@ -119,7 +122,9 @@ class ConversionWorker:
                 self.on_log(log)
         else:
             item.status = JobStatus.FAILED
-            item.message = log or f"終了コード {code}"
+            item.message = log or (
+                f"Exit code {code}" if self.lang == Lang.EN else f"終了コード {code}"
+            )
             self.on_log(item.message)
         self.on_item_update(item)
 
@@ -133,7 +138,7 @@ class ConversionWorker:
 
             for item in affected:
                 item.status = JobStatus.RUNNING
-                item.message = "変換中…"
+                item.message = t(self.lang, "worker_converting")
                 item.command = command
                 self.on_item_update(item)
 
@@ -166,7 +171,9 @@ class ConversionWorker:
                 if log:
                     self.on_log(log)
             else:
-                msg = log or f"終了コード {code}"
+                msg = log or (
+                    f"Exit code {code}" if self.lang == Lang.EN else f"終了コード {code}"
+                )
                 for item in affected:
                     item.status = JobStatus.FAILED
                     item.message = msg
