@@ -5,6 +5,16 @@ PDF / PostScript / 画像をドロップし、プリセットと少数の詳細�
 
 Ghostscript 本体は同梱しません。システムに入っている `gswin64c.exe` を呼び出します。
 
+## ダウンロード（実行ファイル）
+
+[Releases](https://github.com/<OWNER>/GSGui/releases) から最新の **`GSGui-windows-x64.exe`** をダウンロードして実行してください。
+
+- Python のインストールは不要です
+- **Ghostscript は別途インストールが必要**です（下表参照）
+- Windows が「不明な発行元」と表示する場合があります（未署名のため）
+
+`v*` タグを push すると、GitHub Actions がビルドして Release に exe を添付します。
+
 ## 主な機能
 
 - 入力キュー（ドラッグ＆ドロップ / 追加 / 削除 / クリア）。フォルダドロップ可
@@ -23,24 +33,8 @@ Ghostscript 本体は同梱しません。システムに入っている `gswin6
 | 項目 | 内容 |
 |------|------|
 | OS | Windows 10 / 11 |
-| Python | 3.11 以降（開発・動作確認は 3.13） |
 | Ghostscript | [公式サイト](https://www.ghostscript.com/) から別途インストール（64-bit の `gswin64c.exe`） |
-| 依存パッケージ | `customtkinter`、`tkinterdnd2`、`Pillow`（`requirements.txt`） |
-
-## セットアップと起動
-
-```powershell
-git clone https://github.com/<OWNER>/GSGui.git
-cd GSGui
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python -m gsgui
-```
-
-`<OWNER>` は公開先の GitHub ユーザー名または組織名に置き換えてください。
-
-初回以降は、リポジトリ直下の `run.bat` でも起動できます（venv がなければ自動作成します）。
+| ソースから動かす場合 | Python 3.11 以降（開発・動作確認は 3.13）と `requirements.txt` の依存 |
 
 ### Ghostscript が見つからないとき
 
@@ -54,6 +48,20 @@ python -m gsgui
 3. 「変換」を押す
 4. キュー行末の 📁 / 📄 から出力フォルダや PDF を開く
 
+## ソースから起動
+
+```powershell
+git clone https://github.com/<OWNER>/GSGui.git
+cd GSGui
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python -m gsgui
+```
+
+`<OWNER>` は公開先の GitHub ユーザー名または組織名に置き換えてください。  
+初回以降は `run.bat` でも起動できます（venv がなければ自動作成します）。
+
 ## 開発
 
 ```powershell
@@ -61,6 +69,24 @@ python -m gsgui
 pip install -r requirements.txt pytest
 python -m pytest tests -q
 ```
+
+### ローカルで exe をビルド
+
+```powershell
+pip install -r requirements.txt -r requirements-build.txt
+.\scripts\build_exe.ps1
+```
+
+成果物: `dist\GSGui-windows-x64.exe`
+
+### Release を切る（メンテナ）
+
+```powershell
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Actions の **Release** ワークフローが Windows 上でビルドし、GitHub Release に exe を添付します。
 
 ## スコープ外
 

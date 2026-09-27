@@ -1,0 +1,2 @@
+# Tools for packaging a Windows executable (local / CI).
+pyinstaller>=6.3.0

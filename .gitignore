@@ -7,5 +7,6 @@ __pycache__/
 .cursor/
 dist/
 build/
+*.spec
 *.pdf
 .DS_Store
