@@ -5,9 +5,11 @@ PDF / PostScript / 画像をドロップし、プリセットと少数の詳細�
 
 Ghostscript 本体は同梱しません。システムに入っている `gswin64c.exe` を呼び出します。
 
+![GSGui メイン画面](docs/images/main.png)
+
 ## ダウンロード（実行ファイル）
 
-[Releases](https://github.com/<OWNER>/GSGui/releases) から最新の **`GSGui-windows-x64.exe`** をダウンロードして実行してください。
+[Releases](https://github.com/miyam1974/GSGui/releases) から最新の **`GSGui-windows-x64.exe`** をダウンロードして実行してください。
 
 - Python のインストールは不要です
 - **Ghostscript は別途インストールが必要**です（下表参照）
@@ -51,7 +53,7 @@ Ghostscript 本体は同梱しません。システムに入っている `gswin6
 ## ソースから起動
 
 ```powershell
-git clone https://github.com/<OWNER>/GSGui.git
+git clone https://github.com/miyam1974/GSGui.git
 cd GSGui
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
@@ -59,7 +61,6 @@ pip install -r requirements.txt
 python -m gsgui
 ```
 
-`<OWNER>` は公開先の GitHub ユーザー名または組織名に置き換えてください。  
 初回以降は `run.bat` でも起動できます（venv がなければ自動作成します）。
 
 ## 開発
